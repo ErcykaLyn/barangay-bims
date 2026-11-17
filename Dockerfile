@@ -1,4 +1,4 @@
-FROM php:8.2-apk
+FROM php:8.2-fpm-alpine
 
 # 1. I-install ang mga kailangang system packages at PHP extensions
 RUN apk add --no-cache nginx nodejs npm bash supervisor postgresql-dev libzip-dev icu-dev oniguruma-dev \
