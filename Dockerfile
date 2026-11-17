@@ -13,11 +13,13 @@ ENV APP_DEBUG false
 ENV LOG_CHANNEL stderr
 ENV COMPOSER_ALLOW_SUPERUSER 1
 
-# I-install ang Node.js at i-compile ang Vite/Tailwind assets mo
-RUN apk add --no-cache nodejs npm
+# I-install ang Node.js 20 (required ng Vite 7)
+RUN apk add --no-cache nodejs-current npm
 
-# Ito ang nag-a-ayos ng Tailwind error sa Render
+# I-force install ang tamang Tailwind native binding para sa Alpine Linux
 RUN npm install @tailwindcss/oxide-linux-x64-musl --save-optional
+
+# I-compile ang Vite/Tailwind assets
 RUN npm install && npm run build
 
 # Simulan ang server
