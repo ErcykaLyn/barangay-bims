@@ -43,19 +43,20 @@ RUN echo '[global]' > /usr/local/etc/php-fpm.conf \
     && echo 'pm.max_spare_servers = 3' >> /usr/local/etc/php-fpm.d/zz-docker.conf \
     && echo 'catch_workers_output = yes' >> /usr/local/etc/php-fpm.d/zz-docker.conf
 
-# 7. Setup Supervisor (FIXED: idinagdag ang files path)
-RUN mkdir -p /etc/supervisor.d && echo '[supervisord]' > /etc/supervisord.conf \
+# 7. Setup Supervisor (DIRECT CONFIG - no external files)
+RUN echo '[supervisord]' > /etc/supervisord.conf \
     && echo 'nodaemon=true' >> /etc/supervisord.conf \
     && echo 'user=root' >> /etc/supervisord.conf \
-    && echo 'files = /etc/supervisor.d/*.ini' >> /etc/supervisord.conf \
-    && echo '[program:php-fpm]' > /etc/supervisor.d/php-fpm.ini \
-    && echo 'command=php-fpm -F' >> /etc/supervisor.d/php-fpm.ini \
-    && echo 'autostart=true' >> /etc/supervisor.d/php-fpm.ini \
-    && echo 'autorestart=true' >> /etc/supervisor.d/php-fpm.ini \
-    && echo '[program:nginx]' > /etc/supervisor.d/nginx.ini \
-    && echo 'command=nginx -g "daemon off;"' >> /etc/supervisor.d/nginx.ini \
-    && echo 'autostart=true' >> /etc/supervisor.d/nginx.ini \
-    && echo 'autorestart=true' >> /etc/supervisor.d/nginx.ini
+    && echo '' >> /etc/supervisord.conf \
+    && echo '[program:php-fpm]' >> /etc/supervisord.conf \
+    && echo 'command=php-fpm -F' >> /etc/supervisord.conf \
+    && echo 'autostart=true' >> /etc/supervisord.conf \
+    && echo 'autorestart=true' >> /etc/supervisord.conf \
+    && echo '' >> /etc/supervisord.conf \
+    && echo '[program:nginx]' >> /etc/supervisord.conf \
+    && echo 'command=nginx -g "daemon off;"' >> /etc/supervisord.conf \
+    && echo 'autostart=true' >> /etc/supervisord.conf \
+    && echo 'autorestart=true' >> /etc/supervisord.conf
 
 EXPOSE 80
 
