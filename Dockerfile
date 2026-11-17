@@ -14,8 +14,10 @@ ENV LOG_CHANNEL stderr
 ENV COMPOSER_ALLOW_SUPERUSER 1
 
 # I-install ang Node.js at i-compile ang Vite/Tailwind assets mo
-# (Ito ang nagbibigay ng CSS at JS para sa design ng BIMS)
 RUN apk add --no-cache nodejs npm
+
+# Ito ang nag-a-ayos ng Tailwind error sa Render
+RUN npm install @tailwindcss/oxide-linux-x64-musl --save-optional
 RUN npm install && npm run build
 
 # Simulan ang server
