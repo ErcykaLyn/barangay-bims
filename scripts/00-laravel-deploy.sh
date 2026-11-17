@@ -12,8 +12,8 @@ php artisan optimize:clear
 echo "Creating storage link..."
 php artisan storage:link || true
 
-echo "Running migrations..."
-php artisan migrate --force
+echo "Running fresh migrations (Resetting DB)..."
+php artisan migrate:fresh --force
 
 echo "Running database seeders..."
 php artisan db:seed --force
