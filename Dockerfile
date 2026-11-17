@@ -43,10 +43,11 @@ RUN echo '[global]' > /usr/local/etc/php-fpm.conf \
     && echo 'pm.max_spare_servers = 3' >> /usr/local/etc/php-fpm.d/zz-docker.conf \
     && echo 'catch_workers_output = yes' >> /usr/local/etc/php-fpm.d/zz-docker.conf
 
-# 7. Setup Supervisor (FIXED: nilagyan ng user=root at tamang paths)
+# 7. Setup Supervisor (FIXED: idinagdag ang files path)
 RUN mkdir -p /etc/supervisor.d && echo '[supervisord]' > /etc/supervisord.conf \
     && echo 'nodaemon=true' >> /etc/supervisord.conf \
     && echo 'user=root' >> /etc/supervisord.conf \
+    && echo 'files = /etc/supervisor.d/*.ini' >> /etc/supervisord.conf \
     && echo '[program:php-fpm]' > /etc/supervisor.d/php-fpm.ini \
     && echo 'command=php-fpm -F' >> /etc/supervisor.d/php-fpm.ini \
     && echo 'autostart=true' >> /etc/supervisor.d/php-fpm.ini \
