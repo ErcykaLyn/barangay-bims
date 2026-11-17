@@ -21,4 +21,7 @@ php artisan view:cache
 echo "Running migrations..."
 php artisan migrate --force || true
 
+echo "Running database seeders..."
+php artisan db:seed --force || true
+
 echo "Deployment script finished successfully!"
