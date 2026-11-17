@@ -17,7 +17,7 @@ COPY . .
 # (huwag gamitin ang naka-cache na routes/config na maaaring kasama sa repo)
 RUN rm -f bootstrap/cache/*.php
 
-# ---------- PHP dependencies (dati ay wala ito kaya walang vendor/) ----------
+# ---------- PHP dependencies ----------
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --no-scripts \
     && (php artisan package:discover --ansi || true)
 
@@ -33,7 +33,7 @@ RUN printf '%s\n' \
         'max_execution_time=300' \
         > /usr/local/etc/php/conf.d/zz-app.ini
 
-# ---------- PHP-FPM pool (hindi na ino-overwrite ang php-fpm.conf, at hindi na root ang worker) ----------
+# ---------- PHP-FPM pool ----------
 RUN printf '%s\n' \
         '[global]' \
         'daemonize = no' \
@@ -118,8 +118,17 @@ RUN printf '%s\n' \
         'php artisan view:clear || true' \
         'php artisan storage:link || true' \
         '' \
-        '# I-set ang RUN_MIGRATIONS=true sa Render environment kung gusto mong mag-migrate tuwing deploy' \
-        'if [ "$RUN_MIGRATIONS" = "true" ]; then php artisan migrate --force; fi' \
+        '# I-set ang RUN_MIGRATIONS=true sa Render environment para mag-migrate tuwing start' \
+        'if [ "$RUN_MIGRATIONS" = "true" ]; then' \
+        '  echo "Running migrations..."' \
+        '  php artisan migrate --force || echo "!!! MIGRATION FAILED !!!"' \
+        'fi' \
+        '' \
+        '# I-set ang RUN_SEEDERS=true sa Render environment para mag-seed tuwing start' \
+        'if [ "$RUN_SEEDERS" = "true" ]; then' \
+        '  echo "Running database seeders..."' \
+        '  php artisan db:seed --force || echo "!!! SEEDER FAILED !!!"' \
+        'fi' \
         '' \
         '# Dapat nakasulat ng PHP-FPM worker (www-data) ang storage at bootstrap/cache' \
         'chown -R www-data:www-data storage bootstrap/cache' \
