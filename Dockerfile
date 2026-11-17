@@ -1,22 +1,22 @@
 FROM php:8.2-fpm-alpine
 
-# 1. I-install ang mga kailangang system packages at PHP extensions
+# 1. Install system packages and PHP extensions
 RUN apk add --no-cache nginx nodejs npm bash supervisor postgresql-dev libzip-dev icu-dev oniguruma-dev \
     && docker-php-ext-install pdo_pgsql pdo_mysql zip intl opcache
 
-# 2. I-install ang Composer
+# 2. Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# 3. I-setup ang working directory
+# 3. Set working directory
 WORKDIR /var/www/html
 COPY . .
 
-# 4. I-build ang frontend assets (Vite/Tailwind)
+# 4. Build frontend assets
 RUN npm install @tailwindcss/oxide-linux-x64-musl --save-optional
 RUN npm install && npm run build
 
-# 5. I-setup ang Nginx para tumingin sa public folder
-RUN rm -rf /etc/nginx/http.d/default.conf
+# 5. Setup Nginx
+RUN rm -f /etc/nginx/http.d/default.conf
 RUN echo 'server { \
     listen 80; \
     root /var/www/html/public; \
@@ -30,7 +30,7 @@ RUN echo 'server { \
     } \
 }' > /etc/nginx/http.d/default.conf
 
-# 6. I-setup ang PHP-FPM
+# 6. Setup PHP-FPM
 RUN echo '[global]' > /usr/local/etc/php-fpm.conf \
     && echo 'error_log = /proc/self/fd/2' >> /usr/local/etc/php-fpm.conf \
     && echo '[www]' > /usr/local/etc/php-fpm.d/zz-docker.conf \
@@ -43,9 +43,10 @@ RUN echo '[global]' > /usr/local/etc/php-fpm.conf \
     && echo 'pm.max_spare_servers = 3' >> /usr/local/etc/php-fpm.d/zz-docker.conf \
     && echo 'catch_workers_output = yes' >> /usr/local/etc/php-fpm.d/zz-docker.conf
 
-# 7. I-setup ang Supervisor para patakbuhin ang Nginx at PHP-FPM nang sabay
+# 7. Setup Supervisor (FIXED: nilagyan ng user=root at tamang paths)
 RUN mkdir -p /etc/supervisor.d && echo '[supervisord]' > /etc/supervisord.conf \
     && echo 'nodaemon=true' >> /etc/supervisord.conf \
+    && echo 'user=root' >> /etc/supervisord.conf \
     && echo '[program:php-fpm]' > /etc/supervisor.d/php-fpm.ini \
     && echo 'command=php-fpm -F' >> /etc/supervisor.d/php-fpm.ini \
     && echo 'autostart=true' >> /etc/supervisor.d/php-fpm.ini \
