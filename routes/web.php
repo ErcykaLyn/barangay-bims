@@ -26,12 +26,6 @@ use App\Http\Controllers\BHW\FourPsController as BHWFourPs;
 use App\Http\Controllers\BHW\FamilyProfilingController;
 use App\Http\Controllers\PublicAnnouncementController;
 
-// FOR CACHE CLEARING SA RENDER
-Route::get('/clear-cache-now', function () {
-    \Illuminate\Support\Facades\Artisan::call('optimize:clear');
-    return "Cache cleared successfully! You can now go to /login";
-});
-
 // UPDATED: Kunin ang live count ng residents para sa landing page
 Route::get('/', function () {
     $totalResidents = \App\Models\Resident::where('role', 'resident')->count();
@@ -101,14 +95,21 @@ Route::middleware(['auth:web'])->prefix('admin')->name('admin.')->group(function
 
     Route::controller(AdminResident::class)->group(function () {
         Route::get('/residents', 'index')->name('residents.index');
+
+        // BAGONG DAGDAG: Create at Store routes para sa Admin
         Route::get('/residents/create', 'create')->name('residents.create');
         Route::post('/residents', 'store')->name('residents.store');
+
+        // BAGONG DAGDAG: Deceased Residents Route
         Route::get('/residents/deceased', 'deceased')->name('residents.deceased');
+
+        // Pending Accounts Routes
         Route::get('/residents/pending', 'pending')->name('residents.pending');
         Route::post('/residents/bulk-approve', 'bulkApprove')->name('residents.bulk-approve');
         Route::post('/residents/bulk-reject', 'bulkReject')->name('residents.bulk-reject');
         Route::post('/residents/{id}/approve', 'approve')->name('residents.approve');
         Route::post('/residents/{id}/reject', 'reject')->name('residents.reject');
+
         Route::get('/residents/{id}', 'show')->name('residents.show');
         Route::get('/residents/{id}/edit', 'edit')->name('residents.edit');
         Route::put('/residents/{id}', 'update')->name('residents.update');
@@ -117,37 +118,46 @@ Route::middleware(['auth:web'])->prefix('admin')->name('admin.')->group(function
     });
 
     Route::get('/registered-accounts', [RegisteredAccountsController::class, 'index'])->name('registered-accounts.index');
+
     Route::resource('users', UserController::class)->except(['show', 'edit', 'update']);
+
     Route::get('/voters', [AdminResident::class, 'voters'])->name('voters.index');
 
     Route::controller(EquipmentController::class)->group(function () {
         Route::get('/equipment', 'index')->name('equipment.index');
         Route::post('/equipment', 'store')->name('equipment.store');
+
         Route::get('/equipment/requests', 'requests')->name('equipment.requests');
         Route::post('/equipment/requests/{id}/approve', 'approveRequest')->name('equipment.requests.approve');
         Route::post('/equipment/requests/{id}/reject', 'rejectRequest')->name('equipment.requests.reject');
         Route::post('/equipment/requests/{id}/picked-up', 'markPickedUp')->name('equipment.requests.picked-up');
         Route::post('/equipment/requests/{id}/dispensed', 'markDispensed')->name('equipment.requests.dispensed');
         Route::post('/equipment/requests/{id}/returned', 'markReturned')->name('equipment.requests.returned');
+
         Route::get('/equipment/{id}/history', 'history')->name('equipment.history');
         Route::post('/equipment/{id}/borrow', 'borrow')->name('equipment.borrow');
         Route::post('/equipment/{id}/return', 'returnStock')->name('equipment.return');
         Route::post('/equipment/{id}/damage', 'markDamaged')->name('equipment.damage');
         Route::post('/equipment/{id}/restock', 'restock')->name('equipment.restock');
+
         Route::patch('/equipment/{id}/status', 'updateStatus')->name('equipment.update-status');
         Route::delete('/equipment/{id}', 'destroy')->name('equipment.destroy');
     });
 
     Route::prefix('requests')->name('requests.')->group(function () {
+
         Route::get('/', [AdminRequest::class, 'index'])->name('index');
         Route::get('/logs', [AdminRequest::class, 'logs'])->name('logs');
         Route::get('/pending-count', [AdminRequest::class, 'pendingCount'])->name('pendingCount');
         Route::post('/bulk-update', [AdminRequest::class, 'bulkUpdate'])->name('bulkUpdate');
+
         Route::get('/{id}/print', [DocumentPrintController::class, 'print'])->name('print');
+
         Route::post('/{id}/accept', [AdminRequest::class, 'accept'])->name('accept');
         Route::post('/{id}/deny', [AdminRequest::class, 'deny'])->name('deny');
         Route::post('/{id}/ready', [AdminRequest::class, 'markReadyForPickup'])->name('ready');
         Route::post('/{id}/complete', [AdminRequest::class, 'markCompleted'])->name('complete');
+
         Route::get('/{id}', [AdminRequest::class, 'show'])->name('show');
         Route::patch('/{id}', [AdminRequest::class, 'updateStatus'])->name('update');
         Route::delete('/{id}', [AdminRequest::class, 'destroy'])->name('destroy');
@@ -172,9 +182,13 @@ Route::middleware(['auth:web'])->prefix('admin')->name('admin.')->group(function
 Route::middleware(['auth:web'])->prefix('bhw')->name('bhw.')->group(function () {
 
     Route::get('/dashboard', [BHWDashboard::class, 'index'])->name('dashboard');
+
     Route::get('/residents/deceased', [BHWDeceased::class, 'index'])->name('residents.deceased');
+
     Route::resource('residents', BHWResident::class);
     Route::patch('/residents/{id}/mark-deceased', [BHWResident::class, 'markDeceased'])->name('residents.mark-deceased');
+
+    // BAGONG ROUTE PARA SA PAGGawa NG HEAD OF THE FAMILY
     Route::post('/residents/{id}/make-head', [BHWResident::class, 'makeAsHead'])->name('residents.make-head');
 
     Route::controller(FamilyProfilingController::class)->prefix('family-profiling')->name('family_profiling.')->group(function () {
@@ -182,8 +196,11 @@ Route::middleware(['auth:web'])->prefix('bhw')->name('bhw.')->group(function () 
         Route::get('/{family}/search-residents', 'searchResidents')->name('searchResidents');
         Route::post('/{family}/attach-resident', 'attachResident')->name('attachResident');
         Route::delete('/{family}/detach-resident/{resident}', 'detachResident')->name('detachResident');
+
         Route::get('/import/template', 'downloadTemplate')->name('template');
         Route::post('/import', 'import')->name('import');
+
+        // BAGONG ROUTE PARA SA AUTO-GENERATE NG FAMILY CODE
         Route::get('/next-code', 'getNextCode')->name('next-code');
     });
 
@@ -194,6 +211,7 @@ Route::middleware(['auth:web'])->prefix('bhw')->name('bhw.')->group(function () 
     Route::get('/4ps', [BHWFourPs::class, 'index'])->name('4ps.index');
 });
 
+// IDINAGDAG NATIN ANG 'resident.alive' DITO
 Route::middleware(['auth:resident', 'resident.alive'])->prefix('resident')->name('resident.')->group(function () {
 
     Route::get('/dashboard', [ResidentRequest::class, 'dashboard'])->name('dashboard');
@@ -207,7 +225,10 @@ Route::middleware(['auth:resident', 'resident.alive'])->prefix('resident')->name
 
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+
+    // FIXED: tumatanggap na ng PUT at POST para hindi na mag-405 (MethodNotAllowed)
     Route::match(['put', 'post'], '/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
 
     Route::controller(ResidentEquipment::class)->prefix('equipment')->name('equipment.')->group(function () {
@@ -219,6 +240,16 @@ Route::middleware(['auth:resident', 'resident.alive'])->prefix('resident')->name
 
     Route::get('/announcements', [ResidentAnnouncement::class, 'index'])->name('announcements');
 
+    // INALIS KO NA ITO DAHIL NASA PUBLIC NA SILA
+    // Route::get('/ordinances', function () {
+    //     return view('resident.ordinances');
+    // })->name('ordinances');
+
+    // Route::get('/hotlines', function () {
+    //     return view('resident.hotlines');
+    // })->name('hotlines');
+
+    // Resident Chatbot Routes (may throttle din)
     Route::controller(ChatbotController::class)->group(function () {
         Route::get('/chatbot', 'index')->name('chatbot');
         Route::post('/chatbot/send', 'ask')
